@@ -5,3 +5,7 @@
 *.swp
 
 *.hex
+
+__pycache__/
+*.pyc
+
