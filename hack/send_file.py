@@ -1,12 +1,31 @@
 #!/usr/bin/env python3
 
 import time
+import subprocess
 
 import mido
 
 
+def ping(addr, interface=None):
+
+    cmd = ["ping6", "-c", "1", "-i", "0.25"]
+    if interface:
+        cmd += ["-I", interface]
+
+    cmd += [addr]
+
+    subprocess.run(cmd)
+
+
 def send_note(prefix, note):
-    print("PING :: ... <- {}".format(hz))
+
+    # Encode note (::1 - 128)
+    channel = 23 # (maybe we need blinkenlights...)
+    payload = "{}::{}:{}".format(prefix,
+                                 channel,
+                                 hex(note+1)[2:])
+
+    ping(payload, "lo0")
 
 
 def send_file(prefix, filename):
@@ -19,7 +38,7 @@ def send_file(prefix, filename):
             continue
 
         if msg.type == "note_off":
-            send_freq(prefix, 0)
+            send_note(prefix, 0)
             continue
 
         if msg.type == "note_on":
@@ -28,7 +47,5 @@ def send_file(prefix, filename):
             if transposed_note < 0:
                 transposed_note = 0
 
-            freq = note_to_hz(transposed_note)
-
-            send_freq(prefix, freq)
+            send_note(prefix, transposed_note)
 
