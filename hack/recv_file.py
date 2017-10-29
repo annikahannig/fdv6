@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+import subprocess
+
+
 # Index 0 -> C0
 TONE_MAP_HZ = [
   16.35, 17.32,  18.35,  19.45,  20.60,  21.83,  23.12,  24.50,
@@ -15,5 +18,17 @@ TONE_MAP_HZ = [
 def note_to_hz(note):
     """Convert midi note to freq"""
     return TONE_MAP_HZ[note % len(TONE_MAP_HZ)]
+
+
+def read_tcpdump(interface):
+    """Open tcpdump, filter for echo request"""
+    cmd = ["tcpdump",
+           "-l", "-U",
+           "-i", interface, "icmp6"]
+
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=0)
+    for line in iter(proc.stdout.readline,''):
+        print("RECV: {}".format(line))
+
 
 
