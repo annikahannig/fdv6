@@ -20,15 +20,19 @@ def note_to_hz(note):
     return TONE_MAP_HZ[note % len(TONE_MAP_HZ)]
 
 
-def read_tcpdump(interface):
-    """Open tcpdump, filter for echo request"""
-    cmd = ["tcpdump",
-           "-l", "-U",
-           "-i", interface, "icmp6"]
+def doggo_sniff():
+    """Open libpcap-doggo and parse destination"""
+    cmd = ["./doggo"]
 
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=0)
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     for line in iter(proc.stdout.readline,''):
-        print("RECV: {}".format(line))
+        line = str(line, "utf-8")
+        tokens = line.strip().split(" ");
+        if len(tokens) != 2:
+            continue
+
+        src, dst = tokens
+        print("Ping to: {}".format(dst))
 
 
 

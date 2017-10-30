@@ -2,8 +2,18 @@
 
 import time
 import subprocess
+import argparse
 
 import mido
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--interface", required=True)
+    parser.add_argument("-p", "--prefix", required=True)
+    parser.add_argument("-f", "--filename", required=True)
+
+    return parser.parse_args()
 
 
 def ping(addr, interface=None):
@@ -14,21 +24,23 @@ def ping(addr, interface=None):
 
     cmd += [addr]
 
+    print(" ".join(cmd))
+
     subprocess.run(cmd)
 
 
-def send_note(prefix, note):
+def send_note(interface, prefix, note):
 
     # Encode note (::1 - 128)
     channel = 23 # (maybe we need blinkenlights...)
-    payload = "{}::{}:{}".format(prefix,
-                                 channel,
-                                 hex(note+1)[2:])
+    payload = "{}:{:X}:{:X}".format(prefix,
+                                     channel,
+                                     note+1)
 
-    ping(payload, "lo0")
+    ping(payload, interface)
 
 
-def send_file(prefix, filename):
+def send_file(interface, prefix, filename):
     """Generate packets"""
     song = mido.MidiFile(filename)
 
@@ -38,7 +50,7 @@ def send_file(prefix, filename):
             continue
 
         if msg.type == "note_off":
-            send_note(prefix, 0)
+            send_note(interface, prefix, 0)
             continue
 
         if msg.type == "note_on":
@@ -47,5 +59,11 @@ def send_file(prefix, filename):
             if transposed_note < 0:
                 transposed_note = 0
 
-            send_note(prefix, transposed_note)
+            send_note(interface, prefix, transposed_note)
+
+
+if __name__ == "__main__":
+    args = parse_args()
+
+    send_file(args.interface, args.prefix, args.filename)
 
