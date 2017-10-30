@@ -117,6 +117,7 @@ void handle_packet(u_char* user,
     inet_ntop(AF_INET6, dst_addr, str_dst, INET6_ADDRSTRLEN);
 
     printf("%s %s\n", str_src, str_dst);
+    fflush(stdout);
 }
 
 
