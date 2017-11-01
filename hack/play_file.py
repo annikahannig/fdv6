@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-import argparse
+import time
 import subprocess
+import argparse
 
-#import serial
+import mido
 
-# Index 0 -> C0
 TONE_MAP_HZ = [
   16.35, 17.32,  18.35,  19.45,  20.60,  21.83,  23.12,  24.50,
   25.96,  27.50,  29.14,  30.87,  32.70,  34.65,  36.71,  38.89,
@@ -16,7 +16,6 @@ TONE_MAP_HZ = [
  261.63,  277.18,  293.66,  311.13,  329.63,  349.23,  369.99,  392.00
 ]
 
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--serial-device", required=True)
@@ -25,52 +24,49 @@ def parse_args():
     return parser.parse_args()
 
 
-
 def note_to_hz(note):
     """Convert midi note to freq"""
     return TONE_MAP_HZ[note % len(TONE_MAP_HZ)]
 
 
-def set_note(conn, note):
-    freq = round(note_to_hz(note - 1))
+def send_note(conn, note):
 
+    freq = round(note_to_hz(note))
+
+    # Encode note (::1 - 128)
     payload = "023 {}\n".format(freq)
-  
+
     conn.write(payload)
 
 
-def doggo_sniff(serial_conn):
-    """Open libpcap-doggo and parse destination"""
-    cmd = ["./doggo"]
+def play_file(conn, filename):
+    """Generate serial packets"""
+    song = mido.MidiFile(filename)
 
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    for line in iter(proc.stdout.readline,''):
-        line = str(line, "utf-8")
-        tokens = line.strip().split(" ");
-        if len(tokens) != 2:
+    for msg in song:
+        time.sleep(msg.time)
+        if msg.is_meta:
             continue
 
-        src, dst = tokens
-        print("Ping to: {}".format(dst))
+        if msg.type == "note_off":
+            send_note(conn, 0)
+            continue
 
-        # Extract paylaod channel and note
-        tokens = dst.replace("::", ":").split(":")
-        
-        note = int(tokens[-1], 16) - 1
-        channel = int(tokens[-2], 16)
+        if msg.type == "note_on":
+            # Transpose to better utilize our ouput dev
+            transposed_note = msg.note - (32 - 4)
+            if transposed_note < 0:
+                transposed_note = 0
 
-        set_note(serial_conn, note)
-
-        print("RECV note {} @ channel {}".format(note, channel))
+            send_note(conn, transposed_note)
 
 
 if __name__ == "__main__":
-  args = parse_args()
+    args = parse_args()
+     
+    # conn = serial.Serial(args.serial_device, args.baudrate)
+    import sys
+    conn = sys.stdout
 
-  import sys
-  conn = sys.stdout
-  # conn = serial.Serial("/dev/ttyUSB1", 9600)
-
-  doggo_sniff(conn)
-
+    play_file(conn, args.filename)
 
