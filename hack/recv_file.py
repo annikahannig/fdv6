@@ -2,6 +2,7 @@
 
 import subprocess
 
+#import serial
 
 # Index 0 -> C0
 TONE_MAP_HZ = [
@@ -19,8 +20,16 @@ def note_to_hz(note):
     """Convert midi note to freq"""
     return TONE_MAP_HZ[note % len(TONE_MAP_HZ)]
 
+def set_note(conn, note):
+    freq = round(note_to_hz(note))
 
-def doggo_sniff():
+    payload = "023 {}\n".format(freq)
+    print(payload)
+  
+    # conn.write(payload)
+
+
+def doggo_sniff(serial_conn):
     """Open libpcap-doggo and parse destination"""
     cmd = ["./doggo"]
 
@@ -34,5 +43,21 @@ def doggo_sniff():
         src, dst = tokens
         print("Ping to: {}".format(dst))
 
+        # Extract paylaod channel and note
+        tokens = dst.replace("::", ":").split(":")
+        
+        note = int(tokens[-1], 16) - 1
+        channel = int(tokens[-2], 16)
+
+        set_note(serial_conn, note)
+
+        print("RECV note {} @ channel {}".format(note, channel))
+
+
+if __name__ == "__main__":
+  conn = None
+  # conn = serial.Serial("/dev/ttyUSB1", 9600)
+
+  doggo_sniff(conn)
 
 

@@ -34,8 +34,8 @@ def send_note(interface, prefix, note):
     # Encode note (::1 - 128)
     channel = 23 # (maybe we need blinkenlights...)
     payload = "{}:{:X}:{:X}".format(prefix,
-                                     channel,
-                                     note+1)
+                                    channel,
+                                    note+1)
 
     ping(payload, interface)
 
