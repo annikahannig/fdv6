@@ -4,7 +4,9 @@ import time
 import subprocess
 import argparse
 
+import serial
 import mido
+
 
 TONE_MAP_HZ = [
   16.35, 17.32,  18.35,  19.45,  20.60,  21.83,  23.12,  24.50,
@@ -66,10 +68,8 @@ def play_file(conn, filename):
 
 if __name__ == "__main__":
     args = parse_args()
-     
-    # conn = serial.Serial(args.serial_device, args.baudrate)
-    import sys
-    conn = sys.stdout
+
+    conn = serial.Serial(args.serial_device, args.baudrate)
 
     play_file(conn, args.filename)
 

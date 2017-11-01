@@ -3,7 +3,7 @@
 import argparse
 import subprocess
 
-#import serial
+import serial
 
 # Index 0 -> C0
 TONE_MAP_HZ = [
@@ -58,7 +58,6 @@ def doggo_sniff(serial_conn):
 
         # Extract paylaod channel and note
         tokens = dst.replace("::", ":").split(":")
-        
         note = int(tokens[-1], 16) - 1
         channel = int(tokens[-2], 16)
 
@@ -70,9 +69,7 @@ def doggo_sniff(serial_conn):
 if __name__ == "__main__":
   args = parse_args()
 
-  import sys
-  conn = sys.stdout
-  # conn = serial.Serial("/dev/ttyUSB1", 9600)
+  conn = serial.Serial(args.serial_device, args.baudrate)
 
   doggo_sniff(conn)
 
