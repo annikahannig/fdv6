@@ -128,7 +128,7 @@ void handle_packet(u_char* user,
 
 int main(int argc, const char** argv)
 {
-    printf("Starting to capture on ANY device.");
+    printf("Starting to capture on ANY device.\n");
 
     pcap_t *cap = init_pcap("any");
     pcap_loop(cap, -1, handle_packet, NULL);
