@@ -79,7 +79,8 @@ pcap_t* init_pcap(const char* dev)
 
 void hexdump(const unsigned char *data, size_t len)
 {
-    for(size_t i = 0; i < len; i++) {
+    size_t i;
+    for(i = 0; i < len; i++) {
         printf("%x ", data[i]);
     }
     printf("\n");
@@ -90,6 +91,8 @@ void handle_packet(u_char* user,
                    const struct pcap_pkthdr* hdr,
                    const unsigned char* packet)
 {
+    // hexdump(packet, 80);
+    
     // Decode packet:
     // Do we care much?
     // Nah. Let's just decode the header and assume it's an
@@ -97,22 +100,24 @@ void handle_packet(u_char* user,
     //
     // Since we receive packets from ANY device, libpcap omits
     // the ethernet frame and starts directly with the packet.
+    const unsigned char* ipv6_header = packet + 16;
 
-    if (IPV6_NEXT_HEADER(packet) != 58) {
+
+    if (IPV6_NEXT_HEADER(ipv6_header) != 58) {
         printf("ERROR: Received unexpected IPv6 NEXT HEADER (%x)\n",
-               IPV6_NEXT_HEADER(packet));
+               IPV6_NEXT_HEADER(ipv6_header));
     }
 
-    if (!IS_ICMP6_ECHO_REQUEST(packet)) {
+    if (!IS_ICMP6_ECHO_REQUEST(ipv6_header)) {
         return; // Nah.
     }
 
-    struct in6_addr* src_addr = IPV6_SRC_ADDR(packet);
-    struct in6_addr* dst_addr = IPV6_DST_ADDR(packet);
-
+    struct in6_addr* src_addr = IPV6_SRC_ADDR(ipv6_header);
+    struct in6_addr* dst_addr = IPV6_DST_ADDR(ipv6_header);
 
     char str_src[INET6_ADDRSTRLEN];
     char str_dst[INET6_ADDRSTRLEN];
+
     inet_ntop(AF_INET6, src_addr, str_src, INET6_ADDRSTRLEN);
     inet_ntop(AF_INET6, dst_addr, str_dst, INET6_ADDRSTRLEN);
 
