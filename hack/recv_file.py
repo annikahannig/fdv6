@@ -32,10 +32,13 @@ def note_to_hz(note):
 
 
 def set_note(conn, note):
-    freq = round(note_to_hz(note - 1))
+    shift_note = note - 1
+    freq = round(note_to_hz(shift_note))
+    if shift_note == 0:
+        freq = 0
 
     payload = "023 {}\n".format(freq)
-  
+
     conn.write(payload)
 
 

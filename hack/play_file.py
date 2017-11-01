@@ -18,6 +18,7 @@ TONE_MAP_HZ = [
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument("-f", "--filename", required=True)
     parser.add_argument("-d", "--serial-device", required=True)
     parser.add_argument("-b", "--baudrate", default=19200, type=int)
 
@@ -32,6 +33,8 @@ def note_to_hz(note):
 def send_note(conn, note):
 
     freq = round(note_to_hz(note))
+    if note == 0:
+        freq = 0
 
     # Encode note (::1 - 128)
     payload = "023 {}\n".format(freq)
