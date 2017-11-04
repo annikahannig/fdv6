@@ -92,7 +92,7 @@ void handle_packet(u_char* user,
                    const unsigned char* packet)
 {
     // hexdump(packet, 80);
-    
+
     // Decode packet:
     // Do we care much?
     // Nah. Let's just decode the header and assume it's an
