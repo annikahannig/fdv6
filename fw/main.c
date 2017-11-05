@@ -58,6 +58,14 @@ void fd_step()
 void fd_reset()
 {
   uint8_t i;
+
+  FD_FORWARD;
+
+  for( i = 0; i < FD_POS_MAX; i++ ) {
+    fd_step();
+    _delay_us(5000);
+  }
+
   FD_BACKWARD;
 
   for( i = 0; i < FD_POS_MAX; i++ ) {
@@ -65,7 +73,7 @@ void fd_reset()
     _delay_us(5000);
   }
 
-  FD_FORWARD;
+ FD_FORWARD;
 }
 
 /*
@@ -108,12 +116,12 @@ void fd_set_tone(uint16_t tone) {
 
 void fd_play()
 {
-  TIMSK0 |= (1<<OCIE1A);
+  TIMSK1 |= (1<<OCIE1A);
 }
 
 void fd_stop()
 {
-  TIMSK0 &= ~(1<<OCIE1A);
+  TIMSK1 &= ~(1<<OCIE1A);
 }
 
 void fd_init()
@@ -136,7 +144,9 @@ int main(void)
 
   // Setup UART
   USART_init();
+  fd_init();
 
+  _cmd_helo();
   // Enable interrupts
   sei();
 
@@ -151,6 +161,7 @@ int main(void)
       _cmd_helo();
     }
     else if RX_CMD(cmd, "023 ") { // Set row 0
+      USART_writeln("200 ACK");
       tone = atoi(cmd + 4);
       fd_set_tone(tone);
       if (tone > 0) {
