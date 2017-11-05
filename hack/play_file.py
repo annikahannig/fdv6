@@ -41,7 +41,7 @@ def send_note(conn, note):
     # Encode note (::1 - 128)
     payload = "023 {}\n".format(freq)
 
-    conn.write(payload)
+    conn.write(bytes(payload, "utf-8"))
 
 
 def play_file(conn, filename):
@@ -59,7 +59,7 @@ def play_file(conn, filename):
 
         if msg.type == "note_on":
             # Transpose to better utilize our ouput dev
-            transposed_note = msg.note - (32 - 4)
+            transposed_note = msg.note - 32
             if transposed_note < 0:
                 transposed_note = 0
 
